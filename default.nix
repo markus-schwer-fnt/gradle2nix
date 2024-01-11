@@ -24,6 +24,7 @@ let
     };
 
     gradleFlags = [ "installDist" ];
+    buildJdk = pkgs.jdk11;
 
     installPhase = ''
       mkdir -p $out

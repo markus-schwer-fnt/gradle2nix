@@ -27,6 +27,7 @@
 , gradleGen
 , writeText
 , writeTextDir
+, callPackage
 }:
 
 {
@@ -325,17 +326,15 @@ let
       '';
 
   mkGradle = gradleSpec:
-    gradleGen.gradleGen {
-      inherit (gradleSpec) nativeVersion;
-
-      name = "gradle-${gradleSpec.version}-${gradleSpec.type}";
-
-      src = fetchurl {
-        inherit (gradleSpec) url sha256;
+    callPackage (gradleGen {
+      inherit (gradleSpec) version nativeVersion;
+      hash = builtins.convertHash {
+          hash = gradleSpec.sha256;
+          toHashFormat = "sri";
+          hashAlgo = "sha256";
       };
-    } // {
-      inherit (gradleSpec) version;
-    };
+      defaultJava = buildJdk;
+    }) {};
 
   mkProjectEnv = projectSpec: rec {
     inherit (projectSpec) name path version;
