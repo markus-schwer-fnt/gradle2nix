@@ -3,19 +3,25 @@
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs = { self, flake-utils, nixpkgs }:
     flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system};
+      let
+        pkgs = import nixpkgs {
+          system = system;
+        };
       in rec {
-        packages.gradle2nix = import ./default.nix { inherit pkgs; };
-        defaultPackage = packages.gradle2nix;
+        devShell = pkgs.mkShell {
+          buildInputs = with pkgs; [ kotlin-language-server ktlint pkgs.jdk8 ];
+        };
+
+        packages.default = import ./default.nix { inherit pkgs; };
 
         apps.default = {
           type = "app";
-          program = "${packages.gradle2nix}/bin/gradle2nix";
+          program = "${packages.default}/bin/gradle2nix";
         };
       });
 }
